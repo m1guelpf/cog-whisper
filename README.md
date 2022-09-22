@@ -17,3 +17,4 @@ Or, build a Docker image:
 Or, [push it to Replicate](https://replicate.com/docs/guides/push-a-model):
 
     cog push r8.im/...
+# cog-whisper
