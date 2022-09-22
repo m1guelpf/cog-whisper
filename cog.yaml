@@ -1,7 +1,7 @@
 build:
   gpu: true
-  cuda: "11.6.2"
-  python_version: "3.9.9"
+  cuda: "11.3"
+  python_version: "3.8"
   system_packages:
     - "ffmpeg"
   python_packages:
@@ -10,6 +10,7 @@ build:
     - "transformers==4.19.2"
     - "ffmpeg-python==0.2.0"
     - "more_itertools==8.14.0"
-    - "torch==1.12.1 --extra-index-url=https://download.pytorch.org/whl/cu116"
-    - "git+https://github.com/openai/whisper"
+  run:
+    - pip install torch==1.10.0+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+    - pip install git+https://github.com/openai/whisper
 predict: "predict.py:Predictor"
