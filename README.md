@@ -8,7 +8,7 @@ First, download the pre-trained weights:
 
 Then, you can run predictions:
 
-    cog predict -i audio_file="/path/to/audio.mp3"
+    cog predict -i audio_path=@/path/to/audio.mp3 -i output=vtt
 
 Or, build a Docker image:
 

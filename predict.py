@@ -1,5 +1,13 @@
 import whisper
-from cog import BasePredictor, Input, Path
+from typing import Optional
+from whisper.tokenizer import LANGUAGES
+from cog import BasePredictor, Input, Path, BaseModel
+
+
+class ModelOutput(BaseModel):
+    language: str
+    text: Optional[str]
+    subtitles: Optional[str]
 
 
 class Predictor(BasePredictor):
@@ -35,21 +43,26 @@ class Predictor(BasePredictor):
         model = self.models[model_name].to("cuda")
 
         result = model.transcribe(
-            model,
-            audio_path,
+            str(audio_path),
             verbose=True,
-            decode_options={task}
+            task=task
         )
 
         if (output == "text"):
-            return result['text']
+            return ModelOutput(
+                text=result["text"],
+                language=LANGUAGES[result["language"]],
+            )
 
         vtt = "WEBVTT\n"
         for segment in result['segments']:
             vtt += f"{format_timestamp(segment['start'])} --> {format_timestamp(segment['end'])}\n"
             vtt += f"{segment['text'].replace('-->', '->')}\n"
 
-        return vtt
+        return ModelOutput(
+            subtitles=vtt,
+            language=LANGUAGES[result["language"]],
+        )
 
 
 def format_timestamp(seconds: float):
