@@ -10,4 +10,4 @@ models = whisper.available_models()
 
 for model in models:
     print(f"Downloading {model}...")
-    whisper._download(whisper._MODELS[model], "whisper-cache")
+    whisper._download(whisper._MODELS[model], "whisper-cache", in_memory=False)
