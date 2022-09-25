@@ -29,7 +29,7 @@ class Predictor(BasePredictor):
             choices=["text", "vtt"],
             description="Whether to return raw text or a VTT file.",
         ),
-    ) -> str:
+    ) -> ModelOutput:
         """Run a single prediction on the model"""
 
         model = whisper.load_model(
