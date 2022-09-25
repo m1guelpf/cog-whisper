@@ -11,14 +11,6 @@ class ModelOutput(BaseModel):
 
 
 class Predictor(BasePredictor):
-    def setup(self):
-        """Load the model into memory to make running multiple predictions efficient"""
-        self.models = {}
-        for model in ["tiny", "base", "small", "medium", "large"]:
-            self.models[model] = whisper.load_model(
-                model, download_root="whisper-cache"
-            )
-
     def predict(
         self,
         audio_path: Path = Input(description="Audio file to transcribe"),
@@ -40,7 +32,9 @@ class Predictor(BasePredictor):
     ) -> str:
         """Run a single prediction on the model"""
 
-        model = self.models[model_name].to("cuda")
+        model = whisper.load_model(
+            model_name, download_root="whisper-cache", device="cuda"
+        )
 
         result = model.transcribe(
             str(audio_path),
