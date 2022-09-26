@@ -47,7 +47,7 @@ class Predictor(BasePredictor):
         )
 
 
-def format_timestamp(seconds: float):
+def format_timestamp(seconds: float, always_include_hours: bool = False):
     assert seconds >= 0, "non-negative timestamp expected"
     milliseconds = round(seconds * 1000.0)
 
@@ -60,7 +60,8 @@ def format_timestamp(seconds: float):
     seconds = milliseconds // 1_000
     milliseconds -= seconds * 1_000
 
-    return (f"{hours}:" if hours > 0 else "") + f"{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
+    hours_marker = f"{hours}:" if always_include_hours or hours > 0 else ""
+    return f"{hours_marker}{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
 
 
 def generate_vtt(result: dict):
