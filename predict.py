@@ -1,13 +1,12 @@
 import whisper
-from typing import Optional
 from whisper.tokenizer import LANGUAGES
 from cog import BasePredictor, Input, Path, BaseModel
 
 
 class ModelOutput(BaseModel):
+    text: str
     language: str
-    text: Optional[str]
-    subtitles: Optional[str]
+    subtitles: str
 
 
 class Predictor(BasePredictor):
@@ -19,15 +18,10 @@ class Predictor(BasePredictor):
             choices=whisper.available_models(),
             description="Name of the Whisper model to use.",
         ),
-        task: str = Input(
-            default="transcribe",
-            choices=["transcribe", "translate"],
-            description="Whether to transcribe or translate the audio.",
-        ),
-        output: str = Input(
-            default="text",
-            choices=["text", "vtt"],
-            description="Whether to return raw text or a VTT file.",
+        format: str = Input(
+            default="vtt",
+            choices=["srt", "vtt"],
+            description="Whether to generate subtitles on the SRT or VTT format.",
         ),
     ) -> ModelOutput:
         """Run a single prediction on the model"""
@@ -39,22 +33,16 @@ class Predictor(BasePredictor):
         result = model.transcribe(
             str(audio_path),
             verbose=True,
-            task=task
         )
 
-        if (output == "text"):
-            return ModelOutput(
-                text=result["text"],
-                language=LANGUAGES[result["language"]],
-            )
-
-        vtt = "WEBVTT\n"
-        for segment in result['segments']:
-            vtt += f"{format_timestamp(segment['start'])} --> {format_timestamp(segment['end'])}\n"
-            vtt += f"{segment['text'].replace('-->', '->')}\n"
+        if (format == 'vtt'):
+            subtitles = generate_vtt(result)
+        else:
+            subtitles = generate_srt(result)
 
         return ModelOutput(
-            subtitles=vtt,
+            text=result["text"],
+            subtitles=subtitles,
             language=LANGUAGES[result["language"]],
         )
 
@@ -73,3 +61,20 @@ def format_timestamp(seconds: float):
     milliseconds -= seconds * 1_000
 
     return (f"{hours}:" if hours > 0 else "") + f"{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
+
+
+def generate_vtt(result: dict):
+    vtt = "WEBVTT\n"
+    for segment in result['segments']:
+        vtt += f"{format_timestamp(segment['start'])} --> {format_timestamp(segment['end'])}\n"
+        vtt += f"{segment['text'].replace('-->', '->')}\n"
+    return vtt
+
+
+def generate_srt(result: dict):
+    srt = ""
+    for i, segment in enumerate(result['segments'], start=1):
+        srt += f"{i}\n"
+        srt += f"{format_timestamp(segment['start'], always_include_hours=True)} --> {format_timestamp(segment['end'], always_include_hours=True)}\n"
+        srt += f"{segment['text'].strip().replace('-->', '->')}\n"
+    return srt
